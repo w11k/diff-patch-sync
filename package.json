@@ -10,6 +10,9 @@
     "url": "git+https://github.com/w11k/diff-patch-sync.git"
   },
   "description": "diff-patch-sync is a TypeScript library for syncing collaborative web-applications with REST-backends in order to make them offline-capable.",
+  "publishConfig": {
+    "@w11k:registry":"https://gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
