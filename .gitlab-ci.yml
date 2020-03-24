@@ -1,7 +1,7 @@
 variables:
   DOCKER_DRIVER: overlay2
 
-image: node:10-alpine
+image: node:10
 
 stages:
   - test
@@ -18,7 +18,7 @@ test-diff-patch-sync:
 build-diff-patch-sync:
   stage: build
   script:
-    - npm i
+    - npm install
     - npm run build
   artifacts:
     paths:

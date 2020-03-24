@@ -21,12 +21,10 @@
   "dependencies": {
     "@types/jasmine": "^3.5.1",
     "@types/lodash": "^4.14.149",
-    "execution-time": "^1.4.1",
     "jasmine": "^3.5.0",
     "jsondiffpatch": "^0.4.1",
     "lodash": "^4.17.15",
     "nyc": "^15.0.0",
-    "perf_hooks": "0.0.1",
     "rxjs": "~6.3.3",
     "rxjs-compat": "^6.5.3",
     "ts-node": "^8.6.2",
