@@ -33,13 +33,14 @@ publish-diff-patch-sync:
   script:
     - echo '//registry.npmjs.org/:_authToken=$NPM_TOKEN' >> .npmrc
     - echo @w11k:registry https://registry.npmjs.org/ >> .npmrc
+    - cat .npmrc
     - npm publish --access public
   needs:
     - build-diff-patch-sync
   dependencies:
     - build-diff-patch-sync
-  only:
-    refs:
-      - triggers
-      - tags
+#  only:
+#    refs:
+#      - triggers
+#      - tags
 
