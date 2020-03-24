@@ -36,10 +36,10 @@ publish-diff-patch-sync:
 #    - echo email=sallat@w11k.de >> .npmrc
 #    - echo always-auth=true >> .npmrc
 #    - echo '//registry.npmjs.org/:_authToken=$NPM_TOKEN' > .npmrc
-    - echo '//gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=${CI_JOB_TOKEN}'>.npmrc
-#    - npm config set registry http://gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=$NPM_TOKEN
-#    - npm config get registry
-    - npm publish
+#    - echo '//gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=${CI_JOB_TOKEN}'>.npmrc
+    - npm config set registry //registry.npmjs.org/:_authToken=$NPM_TOKEN
+    - npm config get registry
+    - npm publish --access public
   needs:
     - build-diff-patch-sync
   dependencies:

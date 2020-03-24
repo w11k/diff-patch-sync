@@ -1,6 +1,6 @@
 {
   "name": "@w11k/diff-patch-sync",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "author": "W11K GmbH (https://www.w11k.com)",
   "contributors": [
     "Mario Sallat"
@@ -11,7 +11,7 @@
   },
   "description": "diff-patch-sync is a TypeScript library for syncing collaborative web-applications with REST-backends in order to make them offline-capable.",
   "publishConfig": {
-    "@w11k:registry":"https://gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/"
+    "@w11k:registry":"https://registry.npmjs.org/"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
