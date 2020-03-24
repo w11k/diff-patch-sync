@@ -1,0 +1,44 @@
+variables:
+  DOCKER_DRIVER: overlay2
+
+image: node:latest
+
+stages:
+  - test
+  - build
+  - deploy
+  - publish
+
+test-diff-patch-sync:
+  stage: test
+  script:
+      - npm i
+      - npm run coverage
+
+build-diff-patch-sync:
+  stage: build
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+      - node_modules/
+    name: "Build diff-patch-sync"
+    expire_in: 1 week
+    when: on_success
+
+publish-diff-patch-sync:
+  stage: publish
+  script:
+    - echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}'>.npmrc
+    - npm publish
+  needs:
+    - build-diff-patch-sync
+  dependencies:
+    - build-diff-patch-sync
+  only:
+    refs:
+      - triggers
+      - tags
+
