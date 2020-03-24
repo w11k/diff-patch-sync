@@ -31,7 +31,8 @@ build-diff-patch-sync:
 publish-diff-patch-sync:
   stage: publish
   script:
-    - echo '//registry.npmjs.org/:_authToken=$NPM_TOKEN' >> .npmrc
+    - rm .npmrc
+    - echo '//registry.npmjs.org/:_authToken='$NPM_TOKEN >> .npmrc
     - echo @w11k:registry https://registry.npmjs.org/ >> .npmrc
     - cat .npmrc
     - npm publish --access public
