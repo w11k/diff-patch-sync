@@ -122,22 +122,6 @@ describe('DiffPatchSyncClient', async () => {
             expect(client.doc.localShadow.localVersion).toEqual(emptyDoc.localShadow.localVersion);
             expect(client.doc.localShadow.remoteVersion).toEqual(emptyDoc.localShadow.remoteVersion);
             expect(client.doc.localShadow.shadowCopy).toEqual(emptyDoc.localShadow.shadowCopy);
-            expect(client.diffPatchOptions).toBe(diffPatchOptions);
-            expect(client.diffPatchSyncHelper).toBeTruthy();
-            expect(client.syncWithRemoteCallback).toBe(syncWithRemoteCallbackDummy);
-            expect(client.dataAdapter).toBe(dataAdapterMock);
-        });
-
-        it('should be initiated with no options after being created (sync callback is not optional)', async () => {
-            client = new DiffPatchSyncClient<any>(syncWithRemoteCallbackDummy, dataAdapterMock);
-            expect(client).toBeTruthy();
-            expect(client.isSyncing).toBe(false);
-            expect(client.doc.localCopy).toEqual(emptyDoc.localShadow.shadowCopy);
-            expect(client.doc.edits).toEqual(emptyDoc.edits);
-            expect(client.doc.localShadow.localVersion).toEqual(emptyDoc.localShadow.localVersion);
-            expect(client.doc.localShadow.remoteVersion).toEqual(emptyDoc.localShadow.remoteVersion);
-            expect(client.doc.localShadow.shadowCopy).toEqual(emptyDoc.localShadow.shadowCopy);
-            expect(client.diffPatchOptions).not.toBeDefined();
             expect(client.diffPatchSyncHelper).toBeTruthy();
             expect(client.syncWithRemoteCallback).toBe(syncWithRemoteCallbackDummy);
             expect(client.dataAdapter).toBe(dataAdapterMock);
@@ -199,15 +183,6 @@ describe('DiffPatchSyncClient', async () => {
 
             expect(updatedItem).not.toBe(expectedItemToBeUpdated);
             expect(updatedItem).toEqual(expectedItemToBeUpdated);
-        });
-    });
-
-    describe('read()', () => {
-        it('should return a shallow clone of the local copy', () => {
-            const localCopy = client.read();
-
-            expect(localCopy).not.toBe(initialDoc.localCopy);
-            expect(localCopy).toEqual(initialDoc.localCopy);
         });
     });
 

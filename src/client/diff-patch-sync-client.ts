@@ -15,43 +15,35 @@ import {map} from "rxjs/operators";
 *    This will create a new client.
 *
 *    @typeparam T                               The type parameter 'T' is generic, so pass your own interface/class for type safety.
-*    @param clientReplicaId                     The 'clientReplicaId' parameter is a unique id per replica instance. Each client must contain it.
-*                                               Recommended for that is to pass a generated uuid. This unique id must be permanently persisted on
-*                                               the client-side e.g. in localStorage or IndexedDB.
 *    @param syncWithRemoteCallback              The 'syncWithRemoteCallback' parameter is the callback function for the api call to the rest backend.
-*    @param storeLocalData       The 'storeLocalData' parameter is an optional callback function to persist the whole
-*                                               document cliend-side.
+*    @param dataAdapter                         The 'dataAdapter' parameter is the persistence adapter for local storage
 *    @param diffPatchOptions                    The 'diffPatchOptions' parameter is optional and you can pass your own options for the diff patch
 *                                               algorithm (see https://github.com/benjamine/jsondiffpatch#options)
 */
 export class DiffPatchSyncClient<T extends DiffPatchSyncConstraints> {
 
-    diffPatchSyncHelper: DiffPatchSyncHelper<T>;
-    dataAdapter: LocalStoreAdapter<T>;
     syncWithRemoteCallback: (editMessage: EditsDTO) => Promise<EditsDTO>;
-    isSyncing: boolean;
+    dataAdapter: LocalStoreAdapter<T>;
+    diffPatchSyncHelper: DiffPatchSyncHelper<T>;
+
+    isSyncing: boolean = false;
     initialized: boolean = false;
-    doc: ClientDoc<T>;
-    diffPatchOptions: Config;
+    doc: ClientDoc<T> = this.initDoc();
     triggerChange: ReplaySubject<any> = new ReplaySubject<any>(1);
 
     constructor(
         syncWithRemoteCallback: (editMessage: EditsDTO) => Promise<EditsDTO>,
         dataAdapter: LocalStoreAdapter<T>,
-        diffPatchOptions: Config = undefined,
+        private diffPatchOptions: Config = undefined,
     ) {
-        this.isSyncing = false;
-        this.doc = this.initDoc();
-        diffPatchOptions ? this.diffPatchOptions = diffPatchOptions : undefined;
-        this.diffPatchSyncHelper = new DiffPatchSyncHelper(diffPatchOptions);
-        this.dataAdapter = dataAdapter;
         this.syncWithRemoteCallback = syncWithRemoteCallback;
+        this.dataAdapter = dataAdapter;
+        this.diffPatchSyncHelper = new DiffPatchSyncHelper(diffPatchOptions);
     }
 
     /*
-    *    The clients needs to be initialized with the 'initData' function with data before usage. Otherwise it will use an empty document.
+    *    The clients needs to be initialized with the 'initData' function with data before usage to init the doc
     *
-    *    @param initialData     The 'initialData' parameter is optional. Either to leave empty on the beginning or to initialize with the persisted data
     */
     async initData(): Promise<any> {
         this.initialized = true;
@@ -61,7 +53,7 @@ export class DiffPatchSyncClient<T extends DiffPatchSyncConstraints> {
             this.doc = localData;
         } else {
             this.doc = this.initDoc();
-            await this.dataAdapter.storeLocalData(this.doc);
+            return await this.dataAdapter.storeLocalData(this.doc);
         }
     }
 
@@ -87,10 +79,6 @@ export class DiffPatchSyncClient<T extends DiffPatchSyncConstraints> {
     updateById(id: string, updatedItem: T): void {
         this.doc.localCopy = this.doc.localCopy.map((item: T) => item.id == id ? _.cloneDeep(updatedItem) : item);
         this.triggerChange.next();
-    }
-
-    read(): T[] {
-        return _.clone(this.doc.localCopy);
     }
 
     /*
@@ -125,13 +113,25 @@ export class DiffPatchSyncClient<T extends DiffPatchSyncConstraints> {
         this.doc.localCopy = this.doc.localCopy.filter((item: T) => item.id !== id);
         this.triggerChange.next();
     }
-    
+
+    /*
+    *    If you want to receive changes when the document is being updated call 'subscribeToChanges'
+    *
+    *    @returns       Returns an Observable of the client document state every time a change is triggered and after each sync cycle.
+    *
+    */
     subscribeToChanges(): Observable<T[]> {
         return this.triggerChange.pipe(
             map(_ => this.doc.localCopy)
         )
     }
-    
+
+    /*
+    *    Sync data periodically with remote. 'syncPeriodically' function must be called once.
+    *
+    *    @param delay      The 'delay' parameter is the delay between the sync cycles.
+    *
+    */
     syncPeriodically(delay: number): void {
         this.sync().then(_ => {
             new Promise((resolve) => setTimeout(resolve,delay)).then(_ => {
@@ -141,17 +141,14 @@ export class DiffPatchSyncClient<T extends DiffPatchSyncConstraints> {
     }
 
     /*
-    *    After the clients document state has changed the changes must be reflected to the clients shadow and be synchronized with the server.
-    *    The 'sync' function must be called as well on application start to fetch the data with the server.
-    *    At this point the 'syncWithServerCallback' callback which was passed to the client will be called.
-    *    In order to persist the current clients document state before and after syncing with the backend, the 'storeLocalData' will be called if defined.
+    *    Sync data once with remote. 'sync' function must be called every time the document state has changed.
     *
-    *    @returns       Return an observable of the new synced client document state
+    *    @returns       Returns a Promise of the new synced client document state after a sync cycle.
     */
     async sync(): Promise<T[]> {
 
         if (!this.initialized) {
-            console.error(`Client not initialized, please use 'client.initData()' before!`);
+            console.error(`Client not initialized, use 'client.initData()' before!`);
         }
 
         if (this.isSyncing) {

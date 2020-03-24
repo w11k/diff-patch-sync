@@ -11,24 +11,21 @@ import {
 /*
 *    This will create a new server.
 *
-*    @typeparam T                               The type parameter `T` is generic, so pass your own interface/class for type safety.
-*    @param saveShadowCallback                  The ´saveShadowCallback´ parameter is the callback function to persist a new clients shadow copy on the servers database
-*    @param updateShadowCallback                The ´updateShadowCallback´ parameter is the callback function to update a clients shadow copy on the servers database
-*    @param executeEntityOperation                 The ´executeEntityOperation´ parameter is the callback function which is called after each sync request to delete an affected item from the main entity on the servers database
-*    @param saveOrUpdateItemsCallback           The ´saveOrUpdateItemsCallback´ parameter is the callback function which is called after each sync request to update or save an affected item from the main entity on the servers database
+*    @typeparam T                               The type parameter 'T' is generic, so pass your own interface/class for type safety.
+*    @param dataAdapter                         The 'dataAdapter' parameter is the persistence adapter for server-side storage
 *    @param diffPatchOptions                    The ´diffPatchOptions´ parameter is optional and you can pass your own options for the diff patch algorithm (see https://github.com/benjamine/jsondiffpatch#options)
 */
 export class DiffPatchSyncServer<T extends DiffPatchSyncConstraints> {
 
-    diffPatchSyncHelper: DiffPatchSyncHelper<T>;
     dataAdapter: PersistenceAdapter<T>;
+    diffPatchSyncHelper: DiffPatchSyncHelper<T>;
 
     constructor(
         dataAdapter: PersistenceAdapter<T>,
         private diffPatchOptions: Config = undefined
     ) {
-        this.diffPatchSyncHelper = new DiffPatchSyncHelper(diffPatchOptions);
         this.dataAdapter = dataAdapter;
+        this.diffPatchSyncHelper = new DiffPatchSyncHelper(diffPatchOptions);
     }
 
     async addClientShadow(clientShadow: Shadow<T>) {
@@ -59,10 +56,10 @@ export class DiffPatchSyncServer<T extends DiffPatchSyncConstraints> {
     }
 
     /*
-    *    After hitting the server endpoint only the `sync` function must be called.
+    *    After hitting the server endpoint only the 'sync' function must be called.
     *
     *
-    *    @param editMessage     The `clientMessage` parameter is the body from the clients request
+    *    @param editMessage     The 'clientMessage' parameter is the body from the clients request
     *    @returns               Returns a Promise of a new EditsDTO for the client which contains the version numbers and possible server side changes
     */
     async sync(clientMessage: EditsDTO): Promise<EditsDTO> {
