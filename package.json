@@ -5,6 +5,13 @@
   "contributors": [
     "Mario Sallat"
   ],
+  "license": "Apache-2.0",
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/w11k/diff-patch-sync.git"
