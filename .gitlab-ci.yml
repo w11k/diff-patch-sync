@@ -31,14 +31,12 @@ build-diff-patch-sync:
 publish-diff-patch-sync:
   stage: publish
   script:
-#    - echo '//registry.npmjs.org/:_authToken=$NPM_TOKEN' > .npmrc
-    - echo '//gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=${$NPM_TOKEN}'>.npmrc
+    - echo '//gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=${NPM_TOKEN}'>.npmrc
     - npm publish
   needs:
     - build-diff-patch-sync
   dependencies:
     - build-diff-patch-sync
-  when: manual
   only:
     refs:
       - triggers
