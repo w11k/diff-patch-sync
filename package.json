@@ -1,7 +1,15 @@
 {
-  "name": "diff-patch-sync",
+  "name": "@w11k/diff-patch-sync",
   "version": "1.0.2",
-  "description": "",
+  "author": "W11K GmbH (https://www.w11k.com)",
+  "contributors": [
+    "Mario Sallat"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/w11k/diff-patch-sync.git"
+  },
+  "description": "diff-patch-sync is a TypeScript library for syncing collaborative web-applications with REST-backends in order to make them offline-capable.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -10,8 +18,6 @@
     "coverage": "nyc -r text -e .ts -x \"**/*.spec.ts\" npm run test",
     "postversion": "git push --follow-tags"
   },
-  "author": "Mario Sallat",
-  "license": "ISC",
   "dependencies": {
     "@types/jasmine": "^3.5.1",
     "@types/lodash": "^4.14.149",
@@ -30,5 +36,10 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts"
-  ]
+  ],
+  "bugs": {
+    "url": "https://github.com/w11k/diff-patch-sync/issues"
+  },
+  "homepage": "https://github.com/w11k/diff-patch-sync#readme",
+  "devDependencies": {}
 }

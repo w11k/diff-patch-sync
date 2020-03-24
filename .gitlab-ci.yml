@@ -37,6 +37,7 @@ publish-diff-patch-sync:
     - build-diff-patch-sync
   dependencies:
     - build-diff-patch-sync
+  when: manual
   only:
     refs:
       - triggers
