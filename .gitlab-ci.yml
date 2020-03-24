@@ -18,7 +18,7 @@ test-diff-patch-sync:
 build-diff-patch-sync:
   stage: build
   script:
-    - npm ci
+    - npm i
     - npm run build
   artifacts:
     paths:
