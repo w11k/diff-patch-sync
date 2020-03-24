@@ -1,0 +1,9 @@
+{
+  "spec_dir": "",
+  "spec_files": [
+    "src/test/**/*.[sS]pec.ts"
+  ],
+  "helpers": ["helpers/**/*.ts"],
+  "oneFailurePerSpec": false,
+  "random": true
+}
