@@ -37,8 +37,9 @@ publish-diff-patch-sync:
 #    - echo always-auth=true >> .npmrc
 #    - echo '//registry.npmjs.org/:_authToken=$NPM_TOKEN' > .npmrc
 #    - echo '//gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=${CI_JOB_TOKEN}'>.npmrc
-    - npm config set registry //registry.npmjs.org/:_authToken=$NPM_TOKEN
-    - npm config get registry
+    - npm config set '//registry.npmjs.org/:_authToken' $NPM_TOKEN
+    - npm config set @w11k:registry https://registry.npmjs.org/
+    - cat ~/.npmrc
     - npm publish --access public
   needs:
     - build-diff-patch-sync
