@@ -1,5 +1,5 @@
 {
-  "name": "diff-patch-sync",
+  "name": "@w11k/diff-patch-sync",
   "version": "0.0.1",
   "author": "W11K GmbH (https://www.w11k.com)",
   "contributors": [
@@ -32,8 +32,14 @@
     "uuid": "^3.4.0"
   },
   "files": [
-    "dist/**/*.js",
-    "dist/**/*.d.ts"
+    "dist/client/*.js",
+    "dist/client/*.d.ts",
+    "dist/server/*.js",
+    "dist/server/*.d.ts",
+    "dist/core/*.js",
+    "dist/core/*.d.ts",
+    "src/**",
+    "node_modules/**"
   ],
   "bugs": {
     "url": "https://github.com/w11k/diff-patch-sync/issues"
