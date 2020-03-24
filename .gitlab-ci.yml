@@ -40,8 +40,8 @@ publish-diff-patch-sync:
     - build-diff-patch-sync
   dependencies:
     - build-diff-patch-sync
-#  only:
-#    refs:
-#      - triggers
-#      - tags
+  only:
+    refs:
+      - triggers
+      - tags
 
