@@ -78,13 +78,13 @@ export class DiffPatchSyncServer<T extends DiffPatchSyncConstraints> {
             clientShadow = await this.createNewClientShadow(clientReplicaId, clientMessage);
         }
 
-        clientMessage.edits.forEach((edit: Edit, index: number) => {
+        clientMessage.edits.forEach((edit: Edit) => {
             if(edit.remoteVersion === clientShadow.remoteVersion && edit.localVersion === clientShadow.localVersion) {
                 clientShadow.shadowCopy = this.diffPatchSyncHelper.patchInto(clientShadow.shadowCopy, edit.diff);
                 clientShadow.localVersion++;
                 serverCopy = this.diffPatchSyncHelper.patchInto(serverCopy, edit.diff, clientShadowBeforeSync.shadowCopy);
             } else {
-                this.editAlreadyApplied(edit.remoteVersion, clientShadow.remoteVersion, edit.localVersion, clientShadow.localVersion);
+                this.logEditAlreadyApplied(edit.remoteVersion, clientShadow.remoteVersion, edit.localVersion, clientShadow.localVersion);
             }
         });
 
@@ -146,7 +146,7 @@ export class DiffPatchSyncServer<T extends DiffPatchSyncConstraints> {
         }
     }
 
-    editAlreadyApplied(editRemoteVersion, shadowRemoteVersion, editLocalVersion, shadowLocalVersion) {
+    logEditAlreadyApplied(editRemoteVersion, shadowRemoteVersion, editLocalVersion, shadowLocalVersion) {
         console.log('previous response must have been lost -> edit with the following version numbers is already applied:');
         console.log(`editRemoteVersion: ${editRemoteVersion}, shadowRemoteVersion: ${shadowRemoteVersion}, editLocalVersion: ${editLocalVersion}, shadowLocalVersion: ${shadowLocalVersion}`);
     }

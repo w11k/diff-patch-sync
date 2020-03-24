@@ -784,7 +784,7 @@ describe('DiffPatchSyncServer', async () => {
                             }]
                 };
 
-                spyOn(server, 'editAlreadyApplied').withArgs(1, 1, 0, 1);
+                spyOn(server, 'logEditAlreadyApplied').withArgs(1, 1, 0, 1);
 
                 // this first sync cycle works so far and we pretend to lose the response of this
                 const afterFirstSyncResponse: EditsDTO = await server.sync(incomingMessageFromClientWithDiffsBeforeSync);
@@ -804,7 +804,7 @@ describe('DiffPatchSyncServer', async () => {
                     .filter(shadow => shadow.clientReplicaId === 'cfad1550-40fa-11ea-89cb-0b37e84bd51b')
                     .reduce((previousValue, currentValue) => currentValue, undefined);
 
-                expect(server.editAlreadyApplied).toHaveBeenCalledTimes(1);
+                expect(server.logEditAlreadyApplied).toHaveBeenCalledTimes(1);
                 expect(serverShadowAfterSecondSync).toEqual(expectedOutcome);
                 expect(serverShadowAfterSecondSync.localVersion).toBe(2);
                 expect(serverShadowAfterSecondSync.remoteVersion).toBe(1);
