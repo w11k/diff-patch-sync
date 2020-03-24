@@ -33,6 +33,7 @@ publish-diff-patch-sync:
   script:
     - npm config set '//registry.npmjs.org/:_authToken' $NPM_TOKEN
     - npm config set @w11k:registry https://registry.npmjs.org/
+    - cat ~/.npmrc
     - npm publish --access public
   needs:
     - build-diff-patch-sync
