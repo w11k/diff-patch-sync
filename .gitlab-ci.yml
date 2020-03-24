@@ -12,7 +12,7 @@ stages:
 test-diff-patch-sync:
   stage: test
   script:
-      - npm i
+      - npm install
       - npm run coverage
 
 build-diff-patch-sync:
@@ -33,8 +33,8 @@ publish-diff-patch-sync:
   script:
 #    - echo '//registry.npmjs.org/:_authToken=$NPM_TOKEN' > .npmrc
 #    - echo '//gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=${NPM_TOKEN}'>.npmrc
-    - npm config set //gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=$NPM_TOKEN
-    - npm config
+    - npm config set registry //gitlab.com/api/v4/projects/diff-patch-sync/packages/npm/:_authToken=$NPM_TOKEN
+    - npm config get registry
     - npm publish
   needs:
     - build-diff-patch-sync
