@@ -31,7 +31,7 @@ build-diff-patch-sync:
 publish-diff-patch-sync:
   stage: publish
   script:
-    - rm .npmrc
+    - rm -rf .npmrc
     - echo '//registry.npmjs.org/:_authToken='$NPM_TOKEN >> .npmrc
     - echo @w11k:registry https://registry.npmjs.org/ >> .npmrc
     - cat .npmrc
