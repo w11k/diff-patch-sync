@@ -202,8 +202,6 @@ const syncedDoc: Promise<Todo[]> = client.sync();
 
 ### Server
 
-Die Implementation des DS-Algorithmus wird serverseitig von der TypeScript-Klasse 'DiffPatchSyncServer' repräsentiert. Eine Instanz des Servers wird wie folgt instanziiert. Dabei wird der Klasse die generische Typvariable für die gewünschte Entität übergeben.
-
 The server side implementation of the DS algorithm is represented the by the TypeScript class 'DiffPatchSyncServer'. An instance of the server is instantiated as follows. The generic type variable for the desired entity is passed to the class.
 
 ````{caption="DiffPatchSyncServer - Instanziierung"}
@@ -213,8 +211,6 @@ const server: DiffPatchSyncServer<Todo> = new DiffPatchSyncServer(dataAdapter, d
 The parameter during instantiation contains an object of type 'PersistenceAdapter' that contains the implementation for the callback functions for the server-side persistence layer.
 
 ### Persistence
-
-Die serverseitige Persistierung ist wie folgt implementiert: Für die jeweils zu synchronisierende Entität und die Shadow-Entität werden separate Callbacks ausgeführt. Dies hat den Hintergrund, dass diese Entitäten einer relationalen Datenbank des Servers ebenfalls getrennt gespeichert werden. Während eines Synchronisations-Zyklus sollen für die genannten Entitäten alle Datenbank-Operationen verfügbar sein. Wie auf dem Sequenzdiagramm (vgl. Abbildung \ref{server_sequence_diagram}) zu sehen ist, wird vor jeder Daten-Synchronisation der aktuelle Stand der Daten aus der Datenbank geladen. Nach der Synchronisation werden die Daten persistiert. Hierfür werden von der Bibliothek Callbacks bereitgestellt. Ein Call der Funktion entspricht einem Datenbank-Query zu der genannten Entität.
 
 The server-side persistence is implemented as follows: Separate callbacks are executed for the respective entity to be synchronized and the shadow entity. During a synchronization cycle, all database operations should be available for these entities. As shown in the sequence diagram above, the current state of the data is loaded from the database before each data synchronization. After synchronization, the data is persisted. Callbacks are provided by the library for this purpose. A call of the function corresponds to a database query for the named entity.
 
@@ -235,8 +231,6 @@ interface PersistenceAdapter<T> {
 ````
 
 ### Synchronize Data
-
-Nach dem Eintreffen der Response am Server Endpunkt wird die 'sync()'-Methode aufgerufen. Als Parameter wird das entsprechende Datenaustauschobjekt des Request übergeben. Diese liefert nach der Synchronisation der Daten ein Promise des Datenaustauschobjekts zurück, was mit der Response an den Client zurückgeht.
 
 After the response arrives at the servers REST endpoint, the 'sync()' method is called. The corresponding data exchange object of the request is passed as a parameter. After the data has been synchronized, this method returns a promise of the data exchange object, which will be returned to the client with the HTTP-response.
 
