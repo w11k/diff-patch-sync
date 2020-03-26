@@ -33,11 +33,12 @@ or clone repo and run locally:
 
 ## Demo
 
-See a running demo of a collaborative todo-app containing **Angular 7** frontend and **NestJS** Rest backend on Node.js server: 
+See a running demo of a collaborative todo-app containing **Angular 7** frontend and **NestJS** Rest backend on Node.js server. 
+
+It is recommended to use two different browsers (e.g. Chrome and Firefox) or two instances of Chrome in _private mode ("Ctrl + Shift + n")_ because IndexedDB is used and the instances should not share the database.
 
 **[Demo Todo App](http://todo-app.w11k.de/)**
 
-It is recommended to use two different browsers (e.g. Chrome and Firefox) or two instances of Chrome in _private mode ("Ctrl + Shift + n")_ because IndexedDB is used and the instances should not share the database.
 
 ## General
 
@@ -73,7 +74,6 @@ Here's how the Client-Server-Synchronization works:
 ![DiffPatchSyncClient Implementation Sequence Diagram](assets/images/diff-patch-sync-implementation-client.png "DiffPatchSyncClient Implementation Sequence Diagram")
 
 - The **server** implementation of the algorithm can be seen in the sequence diagram below:
-    
     
 ![DiffPatchSyncServer Implementation Sequence Diagram](assets/images/diff-patch-sync-implementation-server.png "DiffPatchSyncServer Implementation Sequence Diagram")
 
