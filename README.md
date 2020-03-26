@@ -99,7 +99,7 @@ A callback function for the API call to the REST backend is passed as a paramete
 syncWithRemoteCallback: (editMessage: EditsDTO) => Promise<EditsDTO>;
 ````
 
-#### Persistence \label{diff_patch_sync_client_persistence}
+#### Persistence
 
 The second parameter during instantiation is an object of type 'LocalStoreAdapter', which contains the implementation for the callback functions for the client-side persistence layer. The functions can be integrated by implementing the signatures in the relevant class. The callback function 'storeLocalData' is called after each synchronization cycle and the function 'getLocalData' before or during initialization.
 
@@ -110,7 +110,7 @@ interface LocalStoreAdapter<T> {
 }
 ```` 
 
-#### Initialize data \label{diff_patch_sync_client_init}
+#### Initialize data
 
 Second the client is initialized with the persisted data using the 'initData()' method. The client then executes the 'getLocalData()' callback function. If no data has been persisted before and the return value is 'undefined', a new document of type 'ClientDoc' is created.
 
@@ -181,7 +181,7 @@ const updatedItem = {
 client.updateById(idToBeUpdated, updatedItem);
 ````
 
-#### Synchronize data \label{diff_patch_sync_client_sync}
+#### Synchronize data
 
 After the status of the client document has changed, the changes must be transferred to the shadow and synchronized with the server. There are two options to do this:
 
@@ -212,7 +212,7 @@ const server: DiffPatchSyncServer<Todo> = new DiffPatchSyncServer(dataAdapter, d
 
 The parameter during instantiation contains an object of type 'PersistenceAdapter' that contains the implementation for the callback functions for the server-side persistence layer.
 
-### Persistence \label{diff_patch_sync_server_persistence}
+### Persistence
 
 Die serverseitige Persistierung ist wie folgt implementiert: Für die jeweils zu synchronisierende Entität und die Shadow-Entität werden separate Callbacks ausgeführt. Dies hat den Hintergrund, dass diese Entitäten einer relationalen Datenbank des Servers ebenfalls getrennt gespeichert werden. Während eines Synchronisations-Zyklus sollen für die genannten Entitäten alle Datenbank-Operationen verfügbar sein. Wie auf dem Sequenzdiagramm (vgl. Abbildung \ref{server_sequence_diagram}) zu sehen ist, wird vor jeder Daten-Synchronisation der aktuelle Stand der Daten aus der Datenbank geladen. Nach der Synchronisation werden die Daten persistiert. Hierfür werden von der Bibliothek Callbacks bereitgestellt. Ein Call der Funktion entspricht einem Datenbank-Query zu der genannten Entität.
 
