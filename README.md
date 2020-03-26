@@ -266,4 +266,4 @@ $ npm run coverage
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the _Apache-2.0_ License - see the [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0) link for details
