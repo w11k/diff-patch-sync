@@ -53,9 +53,9 @@ It is recommended to use two different browsers (e.g. Chrome and Firefox) or two
 
 ![Differential Synchronization Algorithm [https://neil.fraser.name/writing/sync]](assets/images/differential_synchronization_guaranteed_delivery.png "Differential Synchronization Algorithm")
 
-Here's how the Client-Server-Synchronization works: 
+Here's how the Client-Server-Synchronization works:
+ 
 ### Client-Server-Synchronization
-
 
 1. On initial load the clients data copy and local shadow are empty. 
 2. First the client fetches data from server. On the first request a new shadow per client will be created on the server.
@@ -73,13 +73,13 @@ Here's how the Client-Server-Synchronization works:
     
 ![DiffPatchSyncClient Implementation Sequence Diagram](assets/images/diff-patch-sync-implementation-client.png "DiffPatchSyncClient Implementation Sequence Diagram")
 
-- The **server** implementation of the algorithm can be seen in the sequence diagram below:
-    
+- Compared to the client, the **server** implementation is stateless. The following sequence diagram shows in which sequence the algorithm loads, synchronizes and persists the data from the database after the HTTP request has arrived.
+
 ![DiffPatchSyncServer Implementation Sequence Diagram](assets/images/diff-patch-sync-implementation-server.png "DiffPatchSyncServer Implementation Sequence Diagram")
 
 ## Data Model
 
-_The _ClientDoc_ and the _ServerDoc_ classes represents the data to be persisted respectively clientside and serverside:_
+The _ClientDoc_ and the _ServerDoc_ classes represents the data to be persisted respectively clientside and serverside:
 
 ![Implementation Data Model](assets/images/diff-patch-sync-data-model.png "Implementation Data Model")
 
@@ -87,264 +87,164 @@ _The _ClientDoc_ and the _ServerDoc_ classes represents the data to be persisted
 
 ### Client
 
-```typescript
-import {DiffPatchSyncClient} from "diff-patch-sync/dist/client/src/diff-patch-sync-client";
+The client-side implementation of the DS algorithm is represented by the TypeScript class 'DiffPatchSyncClient'. An instance of the client is instantiated as follows. The generic type variable for the desired entity is passed to the class.
 
-/*
-*    This will create a new client. 
-*    
-*    @typeparam T                               The type parameter `T` is generic, so pass your own interface/class for type safety.
-*    @param clientReplicaId                     The ´clientReplicaId´ parameter is a unique id per replica instance. Each client must contain it. 
-*                                               Recommended for that is to pass a generated uuid. This unique id must be permanently persisted on 
-*                                               the client-side e.g. in localStorage or IndexedDB.
-*    @param syncWithRemoteCallback              The ´syncWithRemoteCallback´ parameter is the callback function for the api call to the rest backend. 
-*    @param storeLocalData   The ´storeLocalData´ parameter is an optional callback function to persist the 
-*                                               document cliend-side.
-*    @param diffPatchOptions                    The ´diffPatchOptions´ parameter is optional and you can pass your own options for the diff patch 
-*                                               algorithm (see https://github.com/benjamine/jsondiffpatch#options)
-*/
-    
-const client: DiffPatchSyncClient<Todo> = new DiffPatchSyncClient<Todo>('unique-id-per-replica', syncWithServerCallback);
-```
+````{caption="DiffPatchSyncClient - Instanziierung"}
+const client: DiffPatchSyncClient<Todo> = new DiffPatchSyncClient(syncWithServerCallback, dataAdapter, diffPatchOptions);
+````
 
-#### Initializing data
+A callback function for the API call to the REST backend is passed as a parameter with the following signature:
 
-```typescript
-// The ClientDoc interface helps you to hold the local data copy, the shadow of the data copy and the edits to be send to the server  
-import {ClientDoc} from syncWithRemote;
+````{caption="Signatur für API-Call"}
+syncWithRemoteCallback: (editMessage: EditsDTO) => Promise<EditsDTO>;
+````
 
-const loadedDoc: ClientDoc<Todo> = { .... };
+#### Persistence \label{diff_patch_sync_client_persistence}
 
-/*
-*    The clients needs to be initialized with the `initData` function with data before usage. Otherwise it will use an empty document.  
-*    
-*    @param initialData     The ´initialData´ parameter is optional. Either to leave empty on the beginning or to initialize with the persisted data
-*/
-client.initData(loadedDoc);
-```
+The second parameter during instantiation is an object of type 'LocalStoreAdapter', which contains the implementation for the callback functions for the client-side persistence layer. The functions can be integrated by implementing the signatures in the relevant class. The callback function 'storeLocalData' is called after each synchronization cycle and the function 'getLocalData' before or during initialization.
 
-#### Create data
+````{caption="Interface für clientseitige Persistenz"}
+interface LocalStoreAdapter<T> {
+    storeLocalData(document: ClientDoc<T>): Promise<any>;
+    getLocalData(): Promise<ClientDoc<T>>;
+}
+```` 
 
-```typescript
-const newTodo: Todo = { title: 'This is a new entry', id: 'new-generated-entry-id' };
+#### Initialize data \label{diff_patch_sync_client_init}
 
-/*
-*    If you want to add a new entry to your data use `addToLocalCopy` function.
-*
-*    @param item        The ´docItem´ parameter type should be the same a the type parameter you passed before on creating the client.
-*   
-*/
-client.addToLocalCopy(newTodo);
-```
+Second the client is initialized with the persisted data using the 'initData()' method. The client then executes the 'getLocalData()' callback function. If no data has been persisted before and the return value is 'undefined', a new document of type 'ClientDoc' is created.
+
+````{caption="DiffPatchSyncClient - Daten initialisieren"}
+await client.initData();
+````
+
+#### Add data
+
+To add a new entry to the document, the 'create()' method is used:
+
+````{caption="DiffPatchSyncClient - Eintrag hinzufügen"}
+const newTodo: Todo = { 
+    title: 'This is a new entry', 
+    id: 'new-generated-entry-id' 
+};
+
+client.create(newTodo);
+````
 
 #### Delete data
 
-```typescript
-const toBeRemovedItem: Todo = client.getLocalCopy().filter(todo => todo.id === 'to-be-deleted-entry-id').reduce((previousValue, currentValue) => currentValue);
+To remove an entry from the document, the 'remove()' method is used:
 
-/*
-*    If you want to remove an existing entry of the data use `removeFromLocalCopy` function. 
-*
-*    @param docItem       The `docItem` parameter should be an existing entry from the clients document state.
-*   
-*/
-client.removeFromLocalCopy(toBeRemovedItem);
-```
+````{caption="DiffPatchSyncClient - Eintrag löschen"}
+const toBeRemovedItem: Todo = { 
+    title: 'This entry should be deleted', 
+    id: 'to-be-deleted-entry-id' 
+};
 
-or 
-```typescript
+client.remove(toBeRemovedItem);
+````
+
+It is also an option to delete an entry by ID:
+
+````{caption="DiffPatchSyncClient - Eintrag per ID löschen"}
 const idToBeRemoved: string = 'to-be-deleted-entry-id';
 
-/*
-*    If you want to remove an existing entry by id of the data use `removeFromLocalCopyById` function.
-*
-*    @param id      The `id` parameter should be an id which will be compared to entries in the clients document state.
-*   
-*/
-client.removeFromLocalCopy(idToBeRemoved);
-```
+client.removeById(idToBeRemoved);
+````
 
 #### Update data
-```typescript
-const toUpdateItem: Todo = client.getLocalCopy().filter(item => item.id === 'to-be-updated-entry-id').reduce((previousValue, currentValue) => currentValue);
-const updatedItem = { ...toUpdateItem, title: 'This is an updated entry' };
 
-/*
-*    If you want to update an existing entry of the data use `updateLocalCopy` function. 
-*
-*    @param toUpdateItem    The `toUpdateItem` parameter should be an existing entry from the clients document state.
-*    @param updatedItem     The `updatedItem` parameter should be updated entry which will be committed to the clients document state.
-*   
-*/
-client.updateLocalCopy(toUpdateItem, updatedItem);
-```
-or 
+To update an entry from the document, the 'update()' method is used:
 
-```typescript
+````{caption="DiffPatchSyncClient - Eintrag aktualisieren"}
+const toUpdateItem: Todo = { 
+    id: 'to-be-updated-entry-id', 
+    title: 'This is an entry' 
+};
+const updatedItem: Todo = { 
+    id: 'to-be-updated-entry-id', 
+    title: 'This is the updated entry' 
+};
+
+client.update(toUpdateItem, updatedItem);
+````
+
+It is also an option to update an entry by ID:
+
+````{caption="DiffPatchSyncClient - Eintrag per ID aktualisieren"}
 const idToBeUpdated: string = 'to-be-updated-entry-id';
-const updatedItem = { id: 'to-be-updated-entry-id', title: 'This is an updated entry' };
+const updatedItem = { 
+    id: 'to-be-updated-entry-id', 
+    title: 'This is the updated entry' 
+};
 
-/*
-*    If you want to update an existing entry by id of the data use `removeFromLocalCopy` function. 
-*
-*    @param id              The `id` parameter should be an existing id from an entry from the clients document state.
-*    @param updatedItem     The `updatedItem` parameter should be updated entry which will be committed to the clients document state.
-*   
-*/
-client.updateLocalCopyById(idToBeUpdated, updatedItem);
-```
+client.updateById(idToBeUpdated, updatedItem);
+````
 
-#### Synchronize data
+#### Synchronize data \label{diff_patch_sync_client_sync}
 
-```typescript
-/*
-*    After the clients document state has changed the changes must be reflected to the clients shadow and be synchronized with the server. 
-*    The `sync` function must be called as well on application start to fetch the data with the server.
-*    At this point the `syncWithServerCallback` callback which was passed to the client will be called.
-*    In order to persist the current clients document state before and after syncing with the backend, the `storeLocalData` will be called if defined. 
-*    
-*    @returns       Return an observable of the new synced client document state
-*/
-const syncedDoc: Observable<ClientDoc<Todo>> = client.sync();
-```
+After the status of the client document has changed, the changes must be transferred to the shadow and synchronized with the server. There are two options to do this:
 
-The callback function `syncWithRemoteCallback` can easily be integrated by implementing `LocalStoreAdapter` interface in your class. 
-```typescript
-import {EditsDTO} from "diff-patch-sync/dist/core/diff-patch-sync-interfaces";
-import {LocalStoreAdapter} from "diff-patch-sync/client/src/diff-patch-sync-interfaces";
-/*
-*    The ´syncWithRemoteCallback´ function is the callback function for the api call to the rest backend.
-*
-*    @param editMessage     The `editMessage` parameter contains the version numbers to be compared with the server version numbers, 
-*                           the unique id of the replica and the stack of diffs which are not applied on the server yet.
-*    @returns               Returns an Observable of an updated editMessage from the server which contains possible server changes. The changes will 
-*                           be automatically applied in the sync function.
-*/
-syncWithRemoteCallback(editMessage: EditsDTO): Observable<EditsDTO> {
-    // api call here with with body containing editMessage
-    return editMessageFromServer;
-}
-```
+- Synchronize periodically (Observable-based):
 
-#### Persisting data
+````{caption="DiffPatchSyncClient - Daten periodisch synchronisieren"}
+client.syncPeriodically(2000);
 
-To persist the data locally in the client-storage the callback function `storeLocalData` can easily be integrated by implementing `LocalStoreAdapter` interface in your class.
+const syncedDoc: Observable<Todo[]> = client.subscribeToChanges();
 
-```typescript
-/*
-*    In order to persist the current clients document state before and after syncing with the backend, the 
-*    `storeLocalData` callback function will be called if defined.
-*
-*    @param document     The `document` parameter contains the hole document with the 
-*    clients local data copy, the client data shadow, all version numbers and the unique replica id 
-*/ 
-storeLocalData(document: ClientDoc<Todo>) {
-    // persist data client-side
-}
-```
+````
+
+- Synchronize on changes (Promise-based):
+
+````{caption="DiffPatchSyncClient - Daten synchronisieren"}
+const syncedDoc: Promise<Todo[]> = client.sync();
+````
 
 ### Server
 
-```typescript
-import {DiffPatchSyncServer} from "diff-patch-sync/dist/server/src/diff-patch-sync-server";
+Die Implementation des DS-Algorithmus wird serverseitig von der TypeScript-Klasse 'DiffPatchSyncServer' repräsentiert. Eine Instanz des Servers wird wie folgt instanziiert. Dabei wird der Klasse die generische Typvariable für die gewünschte Entität übergeben.
 
-/*
-*    This will create a new server. 
-*    
-*    @typeparam T                               The type parameter `T` is generic, so pass your own interface/class for type safety.
-*    @param saveShadowCallback                  The ´saveShadowCallback´ parameter is the callback function to persist a new clients shadow copy on the servers database 
-*    @param updateShadowCallback                The ´updateShadowCallback´ parameter is the callback function to update a clients shadow copy on the servers database
-*    @param executeEntityOperation                 The ´executeEntityOperation´ parameter is the callback function which is called after each sync request to delete an affected item from the main entity on the servers database 
-*    @param saveOrUpdateItemsCallback           The ´saveOrUpdateItemsCallback´ parameter is the callback function which is called after each sync request to update or save an affected item from the main entity on the servers database 
-*    @param diffPatchOptions                    The ´diffPatchOptions´ parameter is optional and you can pass your own options for the diff patch algorithm (see https://github.com/benjamine/jsondiffpatch#options)
-*/
-    
-const server: DiffPatchSyncServer<Todo> = this.server = new DiffPatchSyncServer<Todo>(saveShadowCallback, updateShadowCallback, executeEntityOperation, saveOrUpdateItemsCallback);
-```
+The server side implementation of the DS algorithm is represented the by the TypeScript class 'DiffPatchSyncServer'. An instance of the server is instantiated as follows. The generic type variable for the desired entity is passed to the class.
 
-#### Initializing data
+````{caption="DiffPatchSyncServer - Instanziierung"}
+const server: DiffPatchSyncServer<Todo> = new DiffPatchSyncServer(dataAdapter, diffPatchOptions);
+````
 
-```typescript
-/*
-*    The server needs to be initialized with the `initData` function with data before usage. Otherwise it will use an empty array of the server copy and client shadows  
-*    
-*    @param localCopy   The ´localCopy´ parameter is optional. Either to leave empty on the beginning or to initialize with the persisted server copy
-*    @param shadows     The ´shadows´ parameter is optional. Either to leave empty on the beginning or to initialize with the persisted client shadows
-*/
-server.initData(localCopy, shadows);
-```
+The parameter during instantiation contains an object of type 'PersistenceAdapter' that contains the implementation for the callback functions for the server-side persistence layer.
 
-#### Synchronize data
+### Persistence \label{diff_patch_sync_server_persistence}
 
-```typescript
-import {EditsDTO} from "diff-patch-sync/dist/core/diff-patch-sync-interfaces";
-/*
-*    After hitting the server endpoint only the `sync` function will be needed.    
-*       
-*       
-*    @param clientEdits     The `clientEdits` parameter is the body from the clients request    
-*    @returns               Returns a Promise of a new EditsDTO for the client which contains the version numbers and possible server side changes  
-*/
-const serverResponse: EditsDTO = this.server.sync(editMessage);
-```
+Die serverseitige Persistierung ist wie folgt implementiert: Für die jeweils zu synchronisierende Entität und die Shadow-Entität werden separate Callbacks ausgeführt. Dies hat den Hintergrund, dass diese Entitäten einer relationalen Datenbank des Servers ebenfalls getrennt gespeichert werden. Während eines Synchronisations-Zyklus sollen für die genannten Entitäten alle Datenbank-Operationen verfügbar sein. Wie auf dem Sequenzdiagramm (vgl. Abbildung \ref{server_sequence_diagram}) zu sehen ist, wird vor jeder Daten-Synchronisation der aktuelle Stand der Daten aus der Datenbank geladen. Nach der Synchronisation werden die Daten persistiert. Hierfür werden von der Bibliothek Callbacks bereitgestellt. Ein Call der Funktion entspricht einem Datenbank-Query zu der genannten Entität.
 
-#### Persisting data
+The server-side persistence is implemented as follows: Separate callbacks are executed for the respective entity to be synchronized and the shadow entity. During a synchronization cycle, all database operations should be available for these entities. As shown in the sequence diagram above, the current state of the data is loaded from the database before each data synchronization. After synchronization, the data is persisted. Callbacks are provided by the library for this purpose. A call of the function corresponds to a database query for the named entity.
 
-To persist the data different callback functions can easily be integrated by implementing `PersistenceAdapter` interface in your class.
+The functions can be defined by implementing the following signatures in the relevant class:
 
-_Save Shadow:_
-```typescript
-/*
-*    In order to persist a new shadow when a new client connects the `saveShadowCallback` callback function will be called if defined. 
-*    
-*    @param shadow     The `shadow` parameter contains the clients shadow
-*    @returns          Should return a Promise when safed  
-*/ 
-saveShadowCallback(shadow: Shadow): Promise<any> {
-    // safe client shadow here in your repository 
+````{caption="Interface für serverseitige Persistenz"}
+interface PersistenceAdapter<T> {
+    findShadowById(clientReplicaId: string): Promise<Shadow<T>>;
+    saveShadow(shadow: Shadow<T>): Promise<any>;
+    updateShadow(shadow: Shadow<T>): Promise<any>;
+    deleteShadow(shadow: Shadow<T>): Promise<any>;
+
+    findAllItems(): Promise<T[]>;
+    saveItem(item: T): Promise<any>;
+    updateItem(item: T): Promise<any>;
+    deleteItem(item: T): Promise<any>;
 }
-```
+````
 
-_Update Shadow:_
-```typescript
-/*
-*    In order to persist an updated shadow when a client synchronizes the `updateShadowCallback` callback function will be called if defined. 
-*    
-*    @param shadow     The `shadow` parameter contains the clients shadow
-*    @returns          Should return a Promise when updated  
-*/ 
-updateShadowCallback(shadow: Shadow): Promise<any> {
-    // update client shadow here in your repository 
-}
-```
+### Synchronize Data
 
-_Save or update main entity entries:_
-```typescript
-/*
-*    In order to update or add new entries to the main entity when the `sync` function is called the `saveOrUpdateItemsCallback` callback function will be called if defined. 
-*    
-*    @param item       The `item` parameter contains an array of entries of the main entity
-*    @returns          Should return a Promise when updated/saved
-*/ 
-saveOrUpdateItemsCallback(items: Todo[]): Promise<any> {
-    // update or save main entity here in your repository 
-}
-```
+Nach dem Eintreffen der Response am Server Endpunkt wird die 'sync()'-Methode aufgerufen. Als Parameter wird das entsprechende Datenaustauschobjekt des Request übergeben. Diese liefert nach der Synchronisation der Daten ein Promise des Datenaustauschobjekts zurück, was mit der Response an den Client zurückgeht.
 
-_Delete main entity entries:_
-```typescript
-/*
-*    In order to delete an entry from the main entity from the database when the `sync` function is called the `executeEntityOperation` callback function will be called if defined. 
-*    
-*    @param toDeleteIds       The `toDeleteIds` parameter contains an array of ids of items to be deleted from the main entity
-*    @returns                 Should return a Promise when deleted
-*/ 
-executeEntityOperation(toDeleteIds: string[]): Promise<any> {
-    // delete from main entity here in your repository
-}
-```
+After the response arrives at the servers REST endpoint, the 'sync()' method is called. The corresponding data exchange object of the request is passed as a parameter. After the data has been synchronized, this method returns a promise of the data exchange object, which will be returned to the client with the HTTP-response.
 
-## Tests
+````{caption="DiffPatchSyncServer - Daten synchronisieren"}
+const serverMessage: Promise<EditsDTO> = server.sync(clientMessage);
+````
+
+## Testing
 
 Running unit tests: 
 ```bash
@@ -362,7 +262,7 @@ $ npm run coverage
 
 ## Authors
 
-* **Mario Sallat** - *diff-patch-sync* - [DiffPatchSyncHttp](https://github.com/msallat)
+* **Mario Sallat** - [Github](https://github.com/msallat)
 
 ## License
 
