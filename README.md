@@ -33,9 +33,9 @@ or clone repo and run locally:
 
 ## Demo
 
-See a running demo of a collaborative todo-app containing **Angular 7** frontend and **NestJS** Rest backend on Node.js server. 
+See a running demo of a collaborative todo-app containing **Angular 8** frontend and **NestJS** Rest backend on Node.js server. 
 
-It is recommended to use two different browsers (e.g. Chrome and Firefox) or two instances of Chrome in _private mode ("Ctrl + Shift + n")_ because IndexedDB is used and the instances should not share the database.
+It is recommended to use two different browsers (e.g. Chrome and Firefox) or two instances of Chrome (one instance in _private mode ("Ctrl + Shift + n")_) because IndexedDB is used and the instances should not share their databases.
 
 **[Demo Todo App](http://todo-app.w11k.de/)**
 
